@@ -20,6 +20,9 @@ class LayoutExtension extends Model
 {
     use HasFactory;
 
+    const CREATED_AT = null;
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'layout_id',
         'extension',
