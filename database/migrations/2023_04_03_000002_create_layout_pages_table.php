@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use JobMetric\Layout\Models\Layout;
 
 return new class extends Migration {
     /**
@@ -15,7 +14,7 @@ return new class extends Migration {
     {
         Schema::create(config('layout.tables.layout_page'), function (Blueprint $table) {
             $table->foreignId('layout_id')->index()
-                ->references('id')->on((new Layout)->getTable())->cascadeOnDelete()->cascadeOnUpdate();
+                ->references('id')->on(config('layout.tables.layout'))->cascadeOnDelete()->cascadeOnUpdate();
 
             $table->string('application', 100)->nullable();
             /**
@@ -35,7 +34,7 @@ return new class extends Migration {
                 'layout_id',
                 'application',
                 'page'
-            ], 'LAYOUT_PAGE_UNIQUE_KEY');
+            ], 'LAYOUT_APP_PAGE_UNIQUE_KEY');
         });
     }
 

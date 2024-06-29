@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use JobMetric\Layout\Models\Layout;
 
 return new class extends Migration {
     /**
@@ -13,14 +12,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create(config('layout.tables.layout_extension'), function (Blueprint $table) {
+        Schema::create(config('layout.tables.layout_plugin'), function (Blueprint $table) {
             $table->foreignId('layout_id')->index()
-                ->references('id')->on((new Layout)->getTable())->cascadeOnDelete()->cascadeOnUpdate();
+                ->references('id')->on(config('layout.tables.layout'))->cascadeOnDelete()->cascadeOnUpdate();
 
-            $table->string('extension')->index();
+            $table->foreignId('plugin_id')->index()
+                ->references('id')->on(config('extension.tables.plugin'))->cascadeOnDelete()->cascadeOnUpdate();
             /**
-             * The extension field is used to store the extension of the layout.
-             * For example, the extension of the layout is blade.php.
+             * The plugin_id field is used to store the plugin of the layout.
              */
 
             $table->string('position')->index();
@@ -37,9 +36,9 @@ return new class extends Migration {
 
             $table->unique([
                 'layout_id',
-                'extension',
+                'plugin_id',
                 'position'
-            ], 'LAYOUT_EXTENSION_UNIQUE_KEY');
+            ], 'LAYOUT_PLUGIN_UNIQUE_KEY');
         });
     }
 
@@ -50,6 +49,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('layout.tables.layout_path'));
+        Schema::dropIfExists(config('layout.tables.layout_plugin'));
     }
 };
