@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @see \JobMetric\Layout\Layout
  *
- * @method static array store(array $data)
- * @method static array update(int $layout_id, array $data)
- * @method static array delete(int $layout_id)
+ * @method static \Spatie\QueryBuilder\QueryBuilder query(array $filter = [], array $with = [], string $mode = 'withTrashed')
+ * @method static \Illuminate\Http\Resources\Json\AnonymousResourceCollection paginate(array $filter = [], int $page_limit = 15, array $with = [], string $mode = 'withTrashed')
+ * @method static \Illuminate\Http\Resources\Json\AnonymousResourceCollection all(array $filter = [], array $with = [], string $mode = 'withTrashed')
  */
 class Layout extends Facade
 {
@@ -20,6 +20,6 @@ class Layout extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return 'Layout';
+        return \JobMetric\Layout\Layout::class;
     }
 }
