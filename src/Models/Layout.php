@@ -16,7 +16,9 @@ use JobMetric\PackageCore\Models\HasBooleanStatus;
  * @property bool status
  * @property Carbon created_at
  * @property Carbon updated_at
- *
+ * @property int layout_plugin_count
+ * @property LayoutPage[] layoutPages
+ * @property LayoutPlugin[] layoutPlugins
  */
 class Layout extends Model
 {
@@ -59,8 +61,16 @@ class Layout extends Model
      *
      * @return HasMany
      */
-    public function layoutExtension(): HasMany
+    public function layoutPlugins(): HasMany
     {
-        return $this->hasMany(LayoutExtension::class);
+        return $this->hasMany(LayoutPlugin::class);
+    }
+
+    /**
+     * Get layout plugin count
+     */
+    public function getLayoutPluginCountAttribute(): int
+    {
+        return $this->layoutPlugin()->count();
     }
 }
