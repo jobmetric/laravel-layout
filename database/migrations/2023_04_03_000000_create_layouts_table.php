@@ -22,6 +22,8 @@ return new class extends Migration {
              * If the layout is not active, it will not be displayed in the layout list.
              */
 
+            $table->softDeletes();
+
             $table->timestamps();
         });
 
