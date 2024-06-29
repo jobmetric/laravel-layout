@@ -27,7 +27,7 @@ return [
 
     "tables" => [
         'layout' => 'layouts',
-        'layout_extension' => 'layout_extensions',
+        'layout_plugin' => 'layout_plugins',
         'layout_page' => 'layout_pages'
     ],
 
