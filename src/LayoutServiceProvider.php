@@ -20,6 +20,7 @@ class LayoutServiceProvider extends PackageCoreServiceProvider
     {
         $package->name('laravel-layout')
             ->hasConfig()
+            ->hasTranslation()
             ->hasMigration()
             ->registerClass('Layout', Layout::class);
     }
