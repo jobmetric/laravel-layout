@@ -2,9 +2,10 @@
 
 namespace JobMetric\Layout\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * JobMetric\Layout\Models\LayoutPage
@@ -12,8 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int layout_id
  * @property string application
  * @property string page
+ * @property Layout layout
+ * @method static Builder applicationPage(string $application, string $page)
  */
-class LayoutPage extends Model
+class LayoutPage extends Pivot
 {
     use HasFactory;
 
@@ -50,5 +53,22 @@ class LayoutPage extends Model
     public function layout(): BelongsTo
     {
         return $this->belongsTo(Layout::class);
+    }
+
+    /**
+     * Scope a query to only include layout pages by application and page field.
+     *
+     * @param Builder $query
+     * @param string $application
+     * @param string $page
+     *
+     * @return Builder
+     */
+    public function scopeApplicationPage(Builder $query, string $application, string $page): Builder
+    {
+        return $query->where([
+            'application' => $application,
+            'page' => $page
+        ]);
     }
 }

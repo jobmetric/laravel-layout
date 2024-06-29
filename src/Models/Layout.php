@@ -5,6 +5,7 @@ namespace JobMetric\Layout\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use JobMetric\PackageCore\Models\HasBooleanStatus;
 
 /**
@@ -13,6 +14,9 @@ use JobMetric\PackageCore\Models\HasBooleanStatus;
  * @property int id
  * @property string name
  * @property bool status
+ * @property Carbon created_at
+ * @property Carbon updated_at
+ *
  */
 class Layout extends Model
 {

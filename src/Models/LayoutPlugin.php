@@ -4,19 +4,23 @@ namespace JobMetric\Layout\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use JobMetric\Extension\Models\Plugin;
 
 /**
- * JobMetric\Layout\Models\LayoutExtension
+ * JobMetric\Layout\Models\LayoutPlugin
  *
  * @property int layout_id
- * @property string extension
+ * @property int plugin_id
  * @property string position
  * @property int ordering
+ * @property Layout layout
+ * @property Plugin plugin
+ * @method static Builder byPlugin(int $plugin_id)
+ * @method static Builder byPosition(string $position)
  */
-class LayoutExtension extends Model
+class LayoutPlugin extends Pivot
 {
     use HasFactory;
 
@@ -25,7 +29,7 @@ class LayoutExtension extends Model
 
     protected $fillable = [
         'layout_id',
-        'extension',
+        'plugin_id',
         'position',
         'ordering'
     ];
@@ -37,14 +41,14 @@ class LayoutExtension extends Model
      */
     protected $casts = [
         'layout_id' => 'integer',
-        'extension' => 'string',
+        'plugin_id' => 'integer',
         'position' => 'string',
         'ordering' => 'integer',
     ];
 
     public function getTable()
     {
-        return config('layout.tables.layout_extension', parent::getTable());
+        return config('layout.tables.layout_plugin', parent::getTable());
     }
 
     /**
@@ -58,15 +62,26 @@ class LayoutExtension extends Model
     }
 
     /**
-     * Get the extension model.
+     * Get the plugin that owns the relation.
+     *
+     * @return BelongsTo
+     */
+    public function plugin(): BelongsTo
+    {
+        return $this->belongsTo(Plugin::class);
+    }
+
+    /**
+     * Get the plugin model.
      *
      * @param Builder $query
-     * @param string $extension
+     * @param int $plugin_id
+     *
      * @return Builder
      */
-    public function scopeByExtension(Builder $query, string $extension): Builder
+    public function scopeByPlugin(Builder $query, int $plugin_id): Builder
     {
-        return $query->where('extension', $extension);
+        return $query->where('plugin_id', $plugin_id);
     }
 
     /**
@@ -74,6 +89,7 @@ class LayoutExtension extends Model
      *
      * @param Builder $query
      * @param string $position
+     *
      * @return Builder
      */
     public function scopeByPosition(Builder $query, string $position): Builder
