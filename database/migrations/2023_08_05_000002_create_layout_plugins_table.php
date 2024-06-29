@@ -28,7 +28,7 @@ return new class extends Migration {
              * For example, the position of the layout is header.
              */
 
-            $table->integer('ordering')->default(0)->index();
+            $table->integer('ordering')->nullable()->default(0)->index();
             /**
              * The ordering field is used to store the ordering of the layout.
              * For example, the ordering of the layout is 1.
