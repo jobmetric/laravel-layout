@@ -4,7 +4,7 @@ namespace JobMetric\Layout\Events;
 
 use JobMetric\Layout\Models\Layout;
 
-class LayoutDeleteEvent
+class LayoutRestoreEvent
 {
     /**
      * Create a new event instance.

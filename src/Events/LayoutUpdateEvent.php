@@ -1,6 +1,6 @@
 <?php
 
-namespace JobMetric\Layout\Events\Layout;
+namespace JobMetric\Layout\Events;
 
 use JobMetric\Layout\Models\Layout;
 
