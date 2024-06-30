@@ -28,7 +28,8 @@ return [
     "tables" => [
         'layout' => 'layouts',
         'layout_plugin' => 'layout_plugins',
-        'layout_page' => 'layout_pages'
+        'layout_page' => 'layout_pages',
+        'layout_relation' => 'layout_relations'
     ],
 
 ];
