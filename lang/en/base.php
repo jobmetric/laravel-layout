@@ -18,6 +18,11 @@ return [
         'object_not_found' => 'The Layout was not found.',
     ],
 
+    "exceptions" => [
+        'model_layout_contract_not_found' => 'Model ":model" not implements "JobMetric\Layout\Contracts\LayoutContract" interface!',
+        'collection_property_not_exist' => 'The ":field" property not exist in ":model" model!',
+    ],
+
     'messages' => [
         'found' => 'The layout was found successfully.',
         'created' => 'The layout was created successfully.',
