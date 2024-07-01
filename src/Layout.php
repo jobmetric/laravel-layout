@@ -132,6 +132,12 @@ class Layout
         $query->where('id', $layout_id);
 
         if (!empty($with)) {
+            if(isset($with['layoutPlugins'])) {
+                $with['layoutPlugins'] = function ($query) {
+                    $query->orderBy('ordering');
+                };
+            }
+
             $query->with($with);
         }
 
@@ -424,7 +430,7 @@ class Layout
     }
 
     /**
-     * Render plugins in the specified position.
+     * Render plugins
      *
      * @param LayoutModel|int $layout
      *
@@ -441,14 +447,46 @@ class Layout
 
         $positions = $this->getPosition($layout);
 
+        $plugins = [];
+        foreach ($positions as $position) {
+            $layout_plugins = LayoutPlugin::query()->where([
+                'layout_id' => $layout->id,
+                'position' => $position
+            ])->orderBy('ordering')->get();
+
+            foreach ($layout_plugins as $layout_plugin) {
+                $plugins[$layout_plugin->position][] = Plugin::run($layout_plugin->plugin_id);
+            }
+        }
+
+        return $plugins;
+    }
+
+    /**
+     * Render plugins in the specified position.
+     *
+     * @param LayoutModel|int $layout
+     * @param string $position
+     *
+     * @return array
+     */
+    public function runPluginsByPosition(LayoutModel|int $layout, string $position): array
+    {
+        if (!$layout instanceof LayoutModel) {
+            /**
+             * @var LayoutModel $layout
+             */
+            $layout = LayoutModel::query()->where('id', $layout)->first();
+        }
+
         $layout_plugins = LayoutPlugin::query()->where([
             'layout_id' => $layout->id,
-            'position' => $positions
+            'position' => $position
         ])->orderBy('ordering')->get();
 
         $plugins = [];
         foreach ($layout_plugins as $layout_plugin) {
-            $plugins[$layout_plugin->position][] = Plugin::run($layout_plugin->plugin_id);
+            $plugins[] = Plugin::run($layout_plugin->plugin_id);
         }
 
         return $plugins;
