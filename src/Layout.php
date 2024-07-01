@@ -393,4 +393,33 @@ class Layout
             ];
         });
     }
+
+    /**
+     * Get position
+     *
+     * @param LayoutModel|int $layout
+     *
+     * @return array
+     */
+    public function getPosition(LayoutModel|int $layout): array
+    {
+        if ($layout instanceof LayoutModel) {
+            $layout = $layout->id;
+        }
+
+        /**
+         * @var LayoutModel $layout
+         */
+        $layout = LayoutModel::with('layoutPlugins')->where('id', $layout)->first();
+
+        if (!$layout) {
+            return [];
+        }
+
+        $position = $layout->layoutPlugins->map(function ($item) {
+            return $item->position;
+        })->toArray();
+
+        return array_unique($position);
+    }
 }

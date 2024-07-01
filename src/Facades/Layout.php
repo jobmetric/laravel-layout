@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array delete(int $layout_id)
  * @method static array restore(int $layout_id)
  * @method static array forceDelete(int $layout_id)
+ * @method static array getPosition(\JobMetric\Layout\Models\Layout|int $layout)
  */
 class Layout extends Facade
 {

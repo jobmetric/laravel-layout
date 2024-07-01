@@ -269,4 +269,18 @@ class LayoutTest extends BaseLayout
         $this->assertIsInt($layouts->lastPage());
         $this->assertIsArray($layouts->items());
     }
+
+    /**
+     * @throw Throwable
+     */
+    public function test_get_position(): void
+    {
+        $layout = $this->addLayout();
+
+        $layouts = Layout::getPosition($layout['data']->id);
+
+        $this->assertCount(1, $layouts);
+        $this->assertIsArray($layouts);
+        $this->assertEquals('top', $layouts[0]);
+    }
 }
