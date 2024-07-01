@@ -10,7 +10,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testStore(): void
+    public function test_store(): void
     {
         $layout = $this->addLayout();
 
@@ -40,7 +40,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testUpdate(): void
+    public function test_update(): void
     {
         $plugin = $this->addPlugin();
 
@@ -123,7 +123,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testDelete(): void
+    public function test_delete(): void
     {
         $layout = $this->addLayout();
 
@@ -150,7 +150,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testRestore(): void
+    public function test_restore(): void
     {
         $layout = $this->addLayout();
 
@@ -179,7 +179,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testForceDelete(): void
+    public function test_force_delete(): void
     {
         $layout = $this->addLayout();
 
@@ -219,7 +219,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testGet(): void
+    public function test_get(): void
     {
         $layout = $this->addLayout();
 
@@ -235,7 +235,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testAll(): void
+    public function test_all(): void
     {
         $this->addLayout();
 
@@ -251,7 +251,7 @@ class LayoutTest extends BaseLayout
     /**
      * @throw Throwable
      */
-    public function testPaginate(): void
+    public function test_paginate(): void
     {
         $this->addLayout();
 
