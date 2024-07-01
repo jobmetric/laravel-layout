@@ -6,6 +6,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use JobMetric\Extension\Facades\Plugin;
 use JobMetric\Layout\Events\LayoutDeleteEvent;
 use JobMetric\Layout\Events\LayoutForceDeleteEvent;
 use JobMetric\Layout\Events\LayoutRestoreEvent;
@@ -15,6 +16,7 @@ use JobMetric\Layout\Http\Requests\StoreLayoutRequest;
 use JobMetric\Layout\Http\Requests\UpdateLayoutRequest;
 use JobMetric\Layout\Http\Resources\LayoutResource;
 use JobMetric\Layout\Models\Layout as LayoutModel;
+use JobMetric\Layout\Models\LayoutPlugin;
 use Spatie\QueryBuilder\QueryBuilder;
 use Throwable;
 
@@ -403,14 +405,12 @@ class Layout
      */
     public function getPosition(LayoutModel|int $layout): array
     {
-        if ($layout instanceof LayoutModel) {
-            $layout = $layout->id;
+        if (!$layout instanceof LayoutModel) {
+            /**
+             * @var LayoutModel $layout
+             */
+            $layout = LayoutModel::query()->where('id', $layout)->first();
         }
-
-        /**
-         * @var LayoutModel $layout
-         */
-        $layout = LayoutModel::with('layoutPlugins')->where('id', $layout)->first();
 
         if (!$layout) {
             return [];
@@ -421,5 +421,36 @@ class Layout
         })->toArray();
 
         return array_unique($position);
+    }
+
+    /**
+     * Render plugins in the specified position.
+     *
+     * @param LayoutModel|int $layout
+     *
+     * @return array
+     */
+    public function runPlugins(LayoutModel|int $layout): array
+    {
+        if (!$layout instanceof LayoutModel) {
+            /**
+             * @var LayoutModel $layout
+             */
+            $layout = LayoutModel::query()->where('id', $layout)->first();
+        }
+
+        $positions = $this->getPosition($layout);
+
+        $layout_plugins = LayoutPlugin::query()->where([
+            'layout_id' => $layout->id,
+            'position' => $positions
+        ])->orderBy('ordering')->get();
+
+        $plugins = [];
+        foreach ($layout_plugins as $layout_plugin) {
+            $plugins[$layout_plugin->position][] = Plugin::run($layout_plugin->plugin_id);
+        }
+
+        return $plugins;
     }
 }

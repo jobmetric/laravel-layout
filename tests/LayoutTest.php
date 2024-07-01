@@ -283,4 +283,18 @@ class LayoutTest extends BaseLayout
         $this->assertIsArray($layouts);
         $this->assertEquals('top', $layouts[0]);
     }
+
+    /**
+     * @throw Throwable
+     */
+    public function test_run_plugins(): void
+    {
+        $layout = $this->addLayout();
+
+        $plugins = Layout::runPlugins($layout['data']->id);
+
+        $this->assertIsArray($plugins);
+        $this->assertArrayHasKey('top', $plugins);
+        $this->assertEquals('Handle the extension', $plugins['top'][0]);
+    }
 }
