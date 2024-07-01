@@ -12,25 +12,7 @@ class LayoutTest extends BaseLayout
      */
     public function testStore(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $layout = $this->addLayout();
 
         $this->assertIsArray($layout);
         $this->assertTrue($layout['ok']);
@@ -143,25 +125,7 @@ class LayoutTest extends BaseLayout
      */
     public function testDelete(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $layout = $this->addLayout();
 
         $layout = Layout::delete($layout['data']->id);
 
@@ -188,25 +152,7 @@ class LayoutTest extends BaseLayout
      */
     public function testRestore(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $layout = $this->addLayout();
 
         $layout = Layout::delete($layout['data']->id);
 
@@ -235,25 +181,7 @@ class LayoutTest extends BaseLayout
      */
     public function testForceDelete(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $layout = $this->addLayout();
 
         $layout = Layout::delete($layout['data']->id);
 
@@ -293,25 +221,7 @@ class LayoutTest extends BaseLayout
      */
     public function testGet(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $layout = $this->addLayout();
 
         $layout = Layout::get($layout['data']->id);
 
@@ -327,25 +237,7 @@ class LayoutTest extends BaseLayout
      */
     public function testAll(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $this->addLayout();
 
         $layouts = Layout::all();
 
@@ -361,25 +253,7 @@ class LayoutTest extends BaseLayout
      */
     public function testPaginate(): void
     {
-        $plugin = $this->addPlugin();
-
-        $layout = Layout::store([
-            'name' => 'Test Layout',
-            'status' => true,
-            'pages' => [
-                [
-                    'application' => 'Test Application',
-                    'page' => 'Test Page',
-                ],
-            ],
-            'plugins' => [
-                [
-                    'plugin_id' => $plugin['data']->id,
-                    'position' => 'top',
-                    'ordering' => 1,
-                ],
-            ],
-        ]);
+        $this->addLayout();
 
         $layouts = Layout::paginate();
 
