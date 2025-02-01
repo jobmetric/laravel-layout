@@ -146,7 +146,7 @@ class Layout
         if (!$layout) {
             return [
                 'ok' => false,
-                'message' => trans('layout::base.validation.errors'),
+                'message' => trans('package-core::base.validation.errors'),
                 'errors' => [
                     trans('layout::base.validation.object_not_found')
                 ],
@@ -178,7 +178,7 @@ class Layout
 
             return [
                 'ok' => false,
-                'message' => trans('layout::base.validation.errors'),
+                'message' => trans('package-core::base.validation.errors'),
                 'errors' => $errors,
                 'status' => 422
             ];
@@ -223,7 +223,7 @@ class Layout
 
             return [
                 'ok' => false,
-                'message' => trans('layout::base.validation.errors'),
+                'message' => trans('package-core::base.validation.errors'),
                 'errors' => $errors,
                 'status' => 422
             ];
@@ -239,7 +239,7 @@ class Layout
                 if (!$layout) {
                     return [
                         'ok' => false,
-                        'message' => trans('layout::base.validation.errors'),
+                        'message' => trans('package-core::base.validation.errors'),
                         'errors' => [
                             trans('layout::base.validation.object_not_found')
                         ],
@@ -297,7 +297,7 @@ class Layout
             if (!$layout) {
                 return [
                     'ok' => false,
-                    'message' => trans('layout::base.validation.errors'),
+                    'message' => trans('package-core::base.validation.errors'),
                     'errors' => [
                         trans('layout::base.validation.object_not_found')
                     ],
@@ -338,7 +338,7 @@ class Layout
             if (!$layout) {
                 return [
                     'ok' => false,
-                    'message' => trans('layout::base.validation.errors'),
+                    'message' => trans('package-core::base.validation.errors'),
                     'errors' => [
                         trans('layout::base.validation.object_not_found')
                     ],
@@ -379,7 +379,7 @@ class Layout
             if (!$layout) {
                 return [
                     'ok' => false,
-                    'message' => trans('layout::base.validation.errors'),
+                    'message' => trans('package-core::base.validation.errors'),
                     'errors' => [
                         trans('layout::base.validation.object_not_found')
                     ],

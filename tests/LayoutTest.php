@@ -143,7 +143,7 @@ class LayoutTest extends BaseLayout
 
         $this->assertIsArray($layout);
         $this->assertFalse($layout['ok']);
-        $this->assertEquals($layout['message'], trans('layout::base.validation.errors'));
+        $this->assertEquals($layout['message'], trans('package-core::base.validation.errors'));
         $this->assertEquals(404, $layout['status']);
     }
 
@@ -172,7 +172,7 @@ class LayoutTest extends BaseLayout
 
         $this->assertIsArray($layout);
         $this->assertFalse($layout['ok']);
-        $this->assertEquals($layout['message'], trans('layout::base.validation.errors'));
+        $this->assertEquals($layout['message'], trans('package-core::base.validation.errors'));
         $this->assertEquals(404, $layout['status']);
     }
 
@@ -212,7 +212,7 @@ class LayoutTest extends BaseLayout
 
         $this->assertIsArray($layout);
         $this->assertFalse($layout['ok']);
-        $this->assertEquals($layout['message'], trans('layout::base.validation.errors'));
+        $this->assertEquals($layout['message'], trans('package-core::base.validation.errors'));
         $this->assertEquals(404, $layout['status']);
     }
 
