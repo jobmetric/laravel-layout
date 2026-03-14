@@ -4,60 +4,85 @@ namespace JobMetric\Layout\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
- * JobMetric\Layout\Models\LayoutRelation
+ * Class LayoutRelation
  *
- * @property string application
- * @property string relatable_type
- * @property int relatable_id
- * @property int layout_id
- * @property string collection
+ * Pivot: polymorphic binding of a layout to a relatable entity (e.g. Product, Post)
+ * per application/collection. One entity can have one layout per (application, collection).
+ * Use Laravel query builder: whereApplication(), whereCollection(), whereLayoutId(), etc.
  *
- * @property mixed $relatable
- * @property Layout|null $layout
+ * @package JobMetric\Layout
  *
- * @method static Builder|LayoutRelation byApplication(string $application)
- * @method static Builder|LayoutRelation byCollection(string $collection)
+ * @property string|null $application         Application/context key; null for base app.
+ * @property string $relatable_type           The class name of the related model.
+ * @property int $relatable_id                The ID of the related model instance.
+ * @property int $layout_id                   The assigned layout identifier.
+ * @property string|null $collection          Collection key; null for base collection.
+ *
+ * @property-read Model $relatable
+ * @property-read Layout $layout
+ *
+ * @method static Builder|LayoutRelation whereApplication(?string $application)
+ * @method static Builder|LayoutRelation whereCollection(?string $collection)
+ * @method static Builder|LayoutRelation whereLayoutId(int $layout_id)
+ * @method static Builder|LayoutRelation whereRelatableType(string $relatable_type)
+ * @method static Builder|LayoutRelation whereRelatableId(int $relatable_id)
  * @method static Builder|LayoutRelation applicationCollection(string $application, string $collection)
  */
 class LayoutRelation extends Pivot
 {
     use HasFactory;
 
+    /**
+     * This table does not have Laravel's created_at/updated_at columns.
+     *
+     * @var bool
+     */
     public $timestamps = false;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'application',
         'relatable_type',
         'relatable_id',
         'layout_id',
-        'collection'
+        'collection',
     ];
 
     /**
-     * The attributes that should be cast.
+     * The attributes that should be cast to native types.
      *
      * @var array<string, string>
      */
     protected $casts = [
-        'application' => 'string',
+        'application'    => 'string',
         'relatable_type' => 'string',
-        'relatable_id' => 'integer',
-        'layout_id' => 'integer',
-        'collection' => 'string'
+        'relatable_id'   => 'integer',
+        'layout_id'      => 'integer',
+        'collection'     => 'string',
     ];
 
-    public function getTable()
+    /**
+     * Override the table name using config.
+     *
+     * @return string
+     */
+    public function getTable(): string
     {
         return config('layout.tables.layout_relation', parent::getTable());
     }
 
     /**
-     * Get the relatable model that owns the layout.
+     * Get the relatable model (polymorphic).
      *
      * @return MorphTo
      */
@@ -67,7 +92,7 @@ class LayoutRelation extends Pivot
     }
 
     /**
-     * Get the layout that owns the relation.
+     * Get the assigned layout.
      *
      * @return BelongsTo
      */
@@ -77,33 +102,7 @@ class LayoutRelation extends Pivot
     }
 
     /**
-     * Scope a query to only include layouts of a given application.
-     *
-     * @param Builder $query
-     * @param string $application
-     *
-     * @return Builder
-     */
-    public function scopeByApplication(Builder $query, string $application): Builder
-    {
-        return $query->where('application', $application);
-    }
-
-    /**
-     * Scope a query to only include layouts of a given collection.
-     *
-     * @param Builder $query
-     * @param string $collection
-     *
-     * @return Builder
-     */
-    public function scopeByCollection(Builder $query, string $collection): Builder
-    {
-        return $query->where('collection', $collection);
-    }
-
-    /**
-     * Scope a query to only include layouts of a given application and collection.
+     * Scope: filter by application and collection together.
      *
      * @param Builder $query
      * @param string $application
@@ -115,7 +114,7 @@ class LayoutRelation extends Pivot
     {
         return $query->where([
             'application' => $application,
-            'collection' => $collection
+            'collection'  => $collection,
         ]);
     }
 }
