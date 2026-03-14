@@ -126,9 +126,7 @@ trait HasLayout
      */
     protected function layoutCacheKey(?string $application, ?string $collection): string
     {
-        $id = $this->getKey();
-
-        return 'layout:relatable:' . get_class($this) . ':' . ($id !== null ? (string) $id : '') . ':' . ($application ?? '') . ':' . ($collection ?? '');
+        return layout_relatable_cache_key(get_class($this), $this->getKey(), $application, $collection);
     }
 
     /**
