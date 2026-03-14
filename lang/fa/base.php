@@ -12,6 +12,18 @@ return [
     |
     */
 
+    "fields" => [
+        "name" => "نام",
+        "status" => "وضعیت",
+        "pages" => "صفحات",
+        "application" => "اپلیکیشن",
+        "page" => "صفحه",
+        "plugins" => "پلاگین‌ها",
+        "plugin_id" => "پلاگین",
+        "position" => "موقعیت",
+        "ordering" => "ترتیب",
+    ],
+
     "validation" => [
         "check_exist_name" => ":attribute قبلاً انتخاب شده است.",
         "object_not_found" => "لایه‌ی مورد نظر یافت نشد.",

@@ -12,6 +12,18 @@ return [
     |
     */
 
+    "fields" => [
+        "name" => "Name",
+        "status" => "Status",
+        "pages" => "Pages",
+        "application" => "Application",
+        "page" => "Page",
+        "plugins" => "Plugins",
+        "plugin_id" => "Plugin",
+        "position" => "Position",
+        "ordering" => "Ordering",
+    ],
+
     "validation" => [
         "check_exist_name" => "The :attribute has already been taken.",
         "object_not_found" => "The Layout was not found.",
