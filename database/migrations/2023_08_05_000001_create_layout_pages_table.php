@@ -4,44 +4,40 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
         Schema::create(config('layout.tables.layout_page'), function (Blueprint $table) {
-            $table->foreignId('layout_id')->index()
-                ->references('id')->on(config('layout.tables.layout'))->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('layout_id')
+                ->index()
+                ->constrained(config('layout.tables.layout'))
+                ->cascadeOnDelete()
+                ->cascadeOnUpdate();
 
-            $table->string('application', 100)->nullable();
+            $table->string('application', 100)->nullable()->index();
             /**
-             * for another app file
-             *
-             * null value for base app
+             * Application/context identifier; null for base app.
              */
 
-            $table->string('page', 100)->nullable();
+            $table->string('page', 100)->nullable()->index();
             /**
-             * for another collection file
-             *
-             * null value for base collection
+             * Page/collection identifier; null for base collection.
              */
 
             $table->unique([
                 'layout_id',
                 'application',
-                'page'
+                'page',
             ], 'LAYOUT_APP_PAGE_UNIQUE_KEY');
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {

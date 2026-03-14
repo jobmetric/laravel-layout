@@ -4,11 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
@@ -16,29 +15,25 @@ return new class extends Migration {
             $table->id();
 
             $table->string('name')->index();
+            /**
+             * Display name of the layout.
+             */
 
             $table->boolean('status')->default(true)->index();
             /**
-             * If the layout is not active, it will not be displayed in the layout list.
+             * Active flag; when false the layout is excluded from layout listing.
              */
 
             $table->softDeletes();
-
             $table->timestamps();
         });
-
-        cache()->forget('layout');
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {
         Schema::dropIfExists(config('layout.tables.layout'));
-
-        cache()->forget('layout');
     }
 };

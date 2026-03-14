@@ -4,39 +4,33 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up(): void
     {
         Schema::create(config('layout.tables.layout_relation'), function (Blueprint $table) {
-            $table->string('application', 100)->nullable();
+            $table->string('application', 100)->nullable()->index();
             /**
-             * for another app file
-             *
-             * null value for base app
+             * Application/context identifier; null for base app.
              */
 
             $table->morphs('relatable');
             /**
-             * relatable to:
-             *
-             * Product
-             * Post
-             * ...
+             * Polymorphic relation to the entity (e.g. Product, Post) that uses this layout.
              */
 
-            $table->foreignId('layout_id')->index()
-                ->references('id')->on(config('layout.tables.layout'))->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('layout_id')
+                ->index()
+                ->constrained(config('layout.tables.layout'))
+                ->cascadeOnDelete()
+                ->cascadeOnUpdate();
 
-            $table->string('collection', 100)->nullable();
+            $table->string('collection', 100)->nullable()->index();
             /**
-             * for another collection file
-             *
-             * null value for base collection
+             * Collection identifier; null for base collection.
              */
 
             $table->unique([
@@ -44,15 +38,13 @@ return new class extends Migration {
                 'relatable_type',
                 'relatable_id',
                 'layout_id',
-                'collection'
+                'collection',
             ], 'LAYOUT_RELATION_UNIQUE');
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down(): void
     {
