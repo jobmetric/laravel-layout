@@ -44,7 +44,8 @@
                 "JobMetric\\Layout\\LayoutServiceProvider"
             ],
             "aliases": {
-                "Layout": "JobMetric\\Layout\\Facades\\Layout"
+                "Layout": "JobMetric\\Layout\\Facades\\Layout",
+                "ApplicationRegistry": "JobMetric\\Layout\\Facades\\ApplicationRegistry"
             }
         }
     },
