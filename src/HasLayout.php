@@ -2,11 +2,10 @@
 
 namespace JobMetric\Layout;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use JobMetric\Layout\Events\LayoutRelationStoreEvent;
+use Illuminate\Support\Str;
 use JobMetric\Layout\Exceptions\CollectionPropertyNotExistException;
-use JobMetric\Layout\Exceptions\ModelLayoutContractNotFoundException;
 use JobMetric\Layout\Models\Layout;
 use JobMetric\Layout\Models\LayoutPage;
 use JobMetric\Layout\Models\LayoutRelation;
@@ -15,42 +14,102 @@ use Throwable;
 /**
  * Trait HasLayout
  *
+ * Binds a model to layouts per application/collection via the layout_relations polymorphic table.
+ * Mirrors HasTranslation design: optional model properties are read in initializeHasLayout() into base*.
+ *
+ * Model may define (optional):
+ *   protected string $layoutPageType = 'product';      // page type for layout_pages fallback
+ *   protected ?string $layoutCollectionField = null;   // attribute name for collection value
+ *
+ * Resolves layout from layout_relations first; falls back to layout_pages by application + page type.
+ *
  * @package JobMetric\Layout
  *
- * @property Layout layout
- *
- * @method belongsTo(string $class)
+ * @property-read Collection<int, LayoutRelation> $layoutRelatable
  */
 trait HasLayout
 {
     /**
-     * boot has layout trait
+     * Page type used when resolving layout from layout_pages. Set from model property in initializeHasLayout().
+     *
+     * @var string
+     */
+    private string $baseLayoutPageType = 'default';
+
+    /**
+     * Attribute name on the model that holds the collection value; null if not used. Set from model property in
+     * initializeHasLayout().
+     *
+     * @var string|null
+     */
+    private ?string $baseLayoutCollectionField = null;
+
+    /**
+     * Import model-level layout config into base* (mirrors HasTranslation initialize).
      *
      * @return void
      * @throws Throwable
      */
-    public static function bootHasLayout(): void
+    public function initializeHasLayout(): void
     {
-        if (!in_array('JobMetric\Layout\Contracts\LayoutContract', class_implements(self::class))) {
-            throw new ModelLayoutContractNotFoundException(self::class);
+        if (function_exists('hasPropertyInClass')) {
+            if (hasPropertyInClass($this, 'layoutPageType')) {
+                $val = $this->layoutPageType ?? null;
+                $this->baseLayoutPageType = is_string($val) && $val !== '' ? $val : Str::snake(class_basename($this));
+            }
+            else {
+                $this->baseLayoutPageType = Str::snake(class_basename($this));
+            }
+            if (hasPropertyInClass($this, 'layoutCollectionField')) {
+                $val = $this->layoutCollectionField ?? null;
+                $this->baseLayoutCollectionField = is_string($val) ? $val : null;
+            }
+            else {
+                $this->baseLayoutCollectionField = null;
+            }
+        }
+        else {
+            if (property_exists($this, 'layoutPageType')) {
+                $val = $this->layoutPageType ?? null;
+                $this->baseLayoutPageType = is_string($val) && $val !== '' ? $val : Str::snake(class_basename($this));
+            }
+            else {
+                $this->baseLayoutPageType = Str::snake(class_basename($this));
+            }
+            if (property_exists($this, 'layoutCollectionField')) {
+                $val = $this->layoutCollectionField ?? null;
+                $this->baseLayoutCollectionField = is_string($val) ? $val : null;
+            }
+            else {
+                $this->baseLayoutCollectionField = null;
+            }
         }
     }
 
     /**
-     * Layout has one relationship
+     * Page type used when resolving layout from layout_pages (application + page). Reads from base*.
      *
-     * @return BelongsTo
-     * @throws Throwable
+     * @return string
      */
-    public function layout(): BelongsTo
+    protected function layoutPageType(): string
     {
-        return $this->belongsTo(Layout::class);
+        return $this->baseLayoutPageType;
     }
 
     /**
-     * layout has many relationships
+     * Attribute name on the model that holds the collection value; null if not used. Reads from base*.
      *
-     * @return MorphMany
+     * @return string|null
+     */
+    protected function layoutCollectionField(): ?string
+    {
+        return $this->baseLayoutCollectionField;
+    }
+
+    /**
+     * Polymorphic relation: layout_relations for this model (application + collection scoped).
+     *
+     * @return MorphMany<LayoutRelation>
      */
     public function layoutRelatable(): MorphMany
     {
@@ -58,10 +117,53 @@ trait HasLayout
     }
 
     /**
-     * Get collection value
+     * Scope layoutRelatable by application.
+     *
+     * @param string $application
+     *
+     * @return MorphMany<LayoutRelation>
+     */
+    public function layoutApplicationTo(string $application): MorphMany
+    {
+        return $this->layoutRelatable()->where('application', $application);
+    }
+
+    /**
+     * Scope layoutRelatable by collection.
+     *
+     * @param string $collection
+     *
+     * @return MorphMany<LayoutRelation>
+     */
+    public function layoutCollectionTo(string $collection): MorphMany
+    {
+        return $this->layoutRelatable()->where('collection', $collection);
+    }
+
+    /**
+     * Scope layoutRelatable by application and optional collection.
+     *
+     * @param string $application
+     * @param string|null $collection
+     *
+     * @return MorphMany<LayoutRelation>
+     */
+    public function layoutApplicationCollectionTo(string $application, ?string $collection = null): MorphMany
+    {
+        $query = $this->layoutRelatable()->where('application', $application);
+
+        if ($collection !== null) {
+            $query->where('collection', $collection);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Resolve collection value from model when layoutCollectionField() returns a non-null field name.
      *
      * @return string|null
-     * @throws Throwable
+     * @throws CollectionPropertyNotExistException
      */
     public function layoutGetCollectionValue(): ?string
     {
@@ -71,147 +173,111 @@ trait HasLayout
             return null;
         }
 
-        if (!array_key_exists($field, $this->getAttributes())) {
+        if (! array_key_exists($field, $this->getAttributes())) {
             throw new CollectionPropertyNotExistException(self::class, $field);
         }
 
-        return $this->{$field};
+        $value = $this->{$field};
+
+        return $value === null ? null : (string) $value;
     }
 
     /**
-     * scope layout for select application relationship
-     *
-     * @param string $application
-     *
-     * @return MorphMany
-     */
-    public function layoutApplicationTo(string $application): MorphMany
-    {
-        return $this->layoutRelatable()->where('application', $application);
-    }
-
-    /**
-     * scope layout for select collection relationship
-     *
-     * @param string $collection
-     *
-     * @return MorphMany
-     */
-    public function layoutCollectionTo(string $collection): MorphMany
-    {
-        return $this->layoutRelatable()->where('collection', $collection);
-    }
-
-    /**
-     * scope layout for select application and collection relationship
-     *
-     * @param string $application
-     * @param string|null $collection
-     *
-     * @return MorphMany
-     */
-    public function layoutApplicationCollectionTo(string $application, string $collection = null): MorphMany
-    {
-        return $this->layoutRelatable()->where([
-            'application' => $application,
-            'collection' => $collection,
-        ]);
-    }
-
-    /**
-     * Store layout
+     * Store a layout binding for this model for the given application and optional collection.
      *
      * @param Layout|int $layout
      * @param string $application
      * @param string|null $collection
      *
      * @return LayoutRelation
-     * @throws Throwable
      */
-    public function storeLayout(Layout|int $layout, string $application, string $collection = null): LayoutRelation
+    public function storeLayout(Layout|int $layout, string $application, ?string $collection = null): LayoutRelation
     {
-        $layout_relation = $this->layoutRelatable()->create([
+        $layoutId = $layout instanceof Layout ? $layout->id : $layout;
+
+        return $this->layoutRelatable()->create([
             'application' => $application,
-            'layout_id' => $layout instanceof Layout ? $layout->id : $layout,
-            'collection' => $collection,
+            'layout_id'   => $layoutId,
+            'collection'  => $collection,
         ]);
-
-        event(new LayoutRelationStoreEvent($this, $layout_relation));
-
-        return $layout_relation;
     }
 
     /**
-     * load layout relatable after model loaded
+     * Eager-load layoutRelatable (optionally filtered by application and/or collection).
      *
      * @param string|null $application
      * @param string|null $collection
      *
      * @return static
      */
-    public function withLayoutRelatable(string $application = null, string $collection = null): static
+    public function withLayoutRelatable(?string $application = null, ?string $collection = null): static
     {
-        if (is_null($application)) {
+        if ($application === null) {
             $this->load('layoutRelatable');
-        } else if (is_null($collection)) {
-            $this->load(['layoutRelatable' => function ($query) use ($application) {
-                $query->where('application', $application);
-            }]);
-        } else {
-            $this->load(['layoutRelatable' => function ($query) use ($application, $collection) {
-                $query->where([
-                    'application' => $application,
-                    'collection' => $collection
-                ]);
-            }]);
+
+            return $this;
         }
+
+        if ($collection === null) {
+            $this->load(['layoutRelatable' => fn ($q) => $q->where('application', $application)]);
+
+            return $this;
+        }
+
+        $this->load([
+            'layoutRelatable' => fn ($q) => $q->where('application', $application)->where('collection', $collection),
+        ]);
 
         return $this;
     }
 
     /**
-     * get layout
+     * Resolve the effective Layout for this model for the given application and optional collection.
+     * Uses layout_relations first; falls back to layout_pages (application + layoutPageType()) when no relation exists.
      *
      * @param string|null $application
      * @param string|null $collection
      *
      * @return Layout|null
+     * @throws CollectionPropertyNotExistException
      */
-    public function getLayout(string $application = null, string $collection = null): ?Layout
+    public function getLayout(?string $application = null, ?string $collection = null): ?Layout
     {
-        /**
-         * @var LayoutRelation $layout_relation
-         */
-        $layout_relation = $this->layoutRelatable()
-            ->when($application, fn($query) => $query->where('application', $application))
-            ->when($collection, fn($query) => $query->where('collection', $collection))
-            ->first();
+        $collection = $collection ?? $this->layoutGetCollectionValue();
 
-        if ($layout_relation) {
-            return $layout_relation->layout;
+        $relation = $this->layoutRelatable()->when($application !== null, fn ($q
+            ) => $q->where('application', $application))->when($collection !== null, fn ($q
+            ) => $q->where('collection', $collection))->with('layout')->first();
+
+        if ($relation !== null) {
+            return $relation->layout;
         }
 
-        /**
-         * @var LayoutPage $layout_page
-         */
-        $layout_page = LayoutPage::applicationPage($application, $this->layoutPageType())->first();
+        if ($application === null) {
+            return null;
+        }
 
-        return $layout_page?->layout;
+        $layoutPage = LayoutPage::query()
+            ->applicationPage($application, $this->layoutPageType())
+            ->with('layout')
+            ->first();
+
+        return $layoutPage?->layout;
     }
 
     /**
-     * forget layout
+     * Remove layout bindings for the given application and/or collection (null = all).
      *
      * @param string|null $application
      * @param string|null $collection
      *
      * @return static
      */
-    public function forgetLayout(string $application = null, string $collection = null): static
+    public function forgetLayout(?string $application = null, ?string $collection = null): static
     {
         $this->layoutRelatable()
-            ->when($application, fn($query) => $query->where('application', $application))
-            ->when($collection, fn($query) => $query->where('collection', $collection))
+            ->when($application !== null, fn ($q) => $q->where('application', $application))
+            ->when($collection !== null, fn ($q) => $q->where('collection', $collection))
             ->delete();
 
         return $this;

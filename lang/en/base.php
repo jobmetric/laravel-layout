@@ -32,6 +32,10 @@ return [
         "check_exist_name" => "The :attribute has already been taken.",
     ],
 
+    "exceptions" => [
+        "collection_property_not_exist" => "The ':field' property does not exist on model ':model'.",
+    ],
+
     "events" => [
         "group" => "Layout",
         "layout_stored" => [

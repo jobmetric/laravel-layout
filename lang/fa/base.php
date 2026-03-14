@@ -32,6 +32,10 @@ return [
         "check_exist_name" => ":attribute قبلاً انتخاب شده است.",
     ],
 
+    "exceptions" => [
+        "collection_property_not_exist" => "ویژگی ':field' در مدل ':model' وجود ندارد.",
+    ],
+
     "events" => [
         "group" => "لایه",
         "layout_stored" => [
