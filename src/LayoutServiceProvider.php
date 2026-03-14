@@ -2,6 +2,11 @@
 
 namespace JobMetric\Layout;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
+use JobMetric\EventSystem\Support\EventRegistry;
+use JobMetric\Layout\Services\Layout;
+use JobMetric\Layout\Support\ApplicationRegistry;
+use JobMetric\PackageCore\Enums\RegisterClassTypeEnum;
 use JobMetric\PackageCore\Exceptions\MigrationFolderNotFoundException;
 use JobMetric\PackageCore\Exceptions\RegisterClassTypeNotFoundException;
 use JobMetric\PackageCore\PackageCore;
@@ -22,6 +27,29 @@ class LayoutServiceProvider extends PackageCoreServiceProvider
             ->hasConfig()
             ->hasTranslation()
             ->hasMigration()
-            ->registerClass('Layout', Layout::class);
+            ->registerClass('Layout', Layout::class)
+            ->registerClass('ApplicationRegistry', ApplicationRegistry::class, RegisterClassTypeEnum::SINGLETON());
+    }
+
+    /**
+     * After boot package: register domain events when EventRegistry is available.
+     *
+     * @return void
+     * @throws BindingResolutionException
+     */
+    public function afterBootPackage(): void
+    {
+        if ($this->app->bound('EventRegistry')) {
+            /** @var EventRegistry $registry */
+            $registry = $this->app->make('EventRegistry');
+
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutStoreEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutUpdateEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutDeleteEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutRestoreEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutForceDeleteEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutPagesSyncedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutPluginsSyncedEvent::class);
+        }
     }
 }

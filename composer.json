@@ -26,6 +26,7 @@
         "laravel/framework": ">=9.19",
         "jobmetric/laravel-package-core": "^1.38",
         "jobmetric/laravel-extension": "^2.0",
+        "jobmetric/laravel-event-system": "^2.8",
         "spatie/laravel-query-builder": "^6.3"
     },
     "autoload": {
