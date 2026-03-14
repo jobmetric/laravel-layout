@@ -9,9 +9,10 @@
         "package",
         "layout",
         "section",
+        "plugin",
         "management"
     ],
-    "homepage": "https://doc.jobmetric.net/package/laravel-layout",
+    "homepage": "https://jobmetric.github.io/packages/laravel-layout",
     "authors": [
         {
             "name": "Majid Mohammadian",
@@ -23,8 +24,8 @@
     "require": {
         "php": ">=8.0.1",
         "laravel/framework": ">=9.19",
-        "jobmetric/laravel-package-core": "^1.2",
-        "jobmetric/laravel-extension": "^1.1",
+        "jobmetric/laravel-package-core": "^1.38",
+        "jobmetric/laravel-extension": "^2.0",
         "spatie/laravel-query-builder": "^6.3"
     },
     "autoload": {
