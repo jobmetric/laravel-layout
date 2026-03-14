@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool has(string $key)
  * @method static array<string, mixed>|null get(string $key)
  * @method static mixed getOption(string $key, string $option, mixed $default = null)
+ * @method static int | null getDefaultLayout(string $key)
  * @method static array<string, array<string, mixed> > all()
  * @method static array<int, array<string, mixed> > allTranslated(string | null $locale = null)
  * @method static array<int, string> values()

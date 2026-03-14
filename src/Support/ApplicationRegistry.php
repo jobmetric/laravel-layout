@@ -10,6 +10,7 @@ use InvalidArgumentException;
  * - key: English-only identifier for storage (a-z, 0-9, underscore).
  * - name: Translation key for display; output via trans().
  * - description: Translation key for description; output via trans().
+ * - default_layout: Optional layout id used when getLayout() finds no relation and no layout_pages fallback.
  *
  * @package JobMetric\Layout
  *
@@ -44,7 +45,7 @@ class ApplicationRegistry
      * Register an application.
      *
      * @param string $key                   Storage key; must be English only (a-z, 0-9, _).
-     * @param array<string, mixed> $options name (string, trans key), description (string, trans key), order (int), ...
+     * @param array<string, mixed> $options name (trans key), description (trans key), order (int), default_layout (int), ...
      *
      * @return self
      * @throws InvalidArgumentException When key is not English-only.
@@ -111,7 +112,7 @@ class ApplicationRegistry
      * Get a single option for a registered application.
      *
      * @param string $key    Application key.
-     * @param string $option Option key (e.g. order, name, description).
+     * @param string $option Option key (e.g. order, name, description, default_layout).
      * @param mixed $default Value when key or option is missing.
      *
      * @return mixed
@@ -119,6 +120,32 @@ class ApplicationRegistry
     public function getOption(string $key, string $option, mixed $default = null): mixed
     {
         return Arr::get($this->applications[$this->normalizeKey($key)] ?? [], $option, $default);
+    }
+
+    /**
+     * Get the default layout id for an application (used when getLayout() has no relation or layout_pages fallback).
+     *
+     * @param string $key Application key.
+     *
+     * @return int|null Layout id or null when not set or application not registered.
+     */
+    public function getDefaultLayout(string $key): ?int
+    {
+        $key = $this->normalizeKey($key);
+
+        if (! isset($this->applications[$key])) {
+            return null;
+        }
+
+        $value = $this->applications[$key]['default_layout'] ?? null;
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $id = (int) $value;
+
+        return $id > 0 ? $id : null;
     }
 
     /**
