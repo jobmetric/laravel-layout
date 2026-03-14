@@ -20,8 +20,8 @@ class LayoutFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->word(),
-            'status' => $this->faker->boolean()
+            'name'   => $this->faker->word(),
+            'status' => $this->faker->boolean(),
         ];
     }
 
@@ -34,8 +34,8 @@ class LayoutFactory extends Factory
      */
     public function setName(string $name): static
     {
-        return $this->state(fn(array $attributes) => [
-            'name' => $name
+        return $this->state(fn (array $attributes) => [
+            'name' => $name,
         ]);
     }
 
@@ -48,8 +48,8 @@ class LayoutFactory extends Factory
      */
     public function setStatus(bool $status): static
     {
-        return $this->state(fn(array $attributes) => [
-            'status' => $status
+        return $this->state(fn (array $attributes) => [
+            'status' => $status,
         ]);
     }
 }

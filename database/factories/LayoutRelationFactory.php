@@ -20,11 +20,18 @@ class LayoutRelationFactory extends Factory
     public function definition(): array
     {
         return [
-            'application' => $this->faker->shuffleArray(['admin', 'web', 'api']),
+            'application'    => $this->faker->randomElement([
+                'admin',
+                'web',
+                'api',
+            ]),
             'relatable_type' => null,
-            'relatable_id' => null,
-            'category_id' => null,
-            'collection' => null,
+            'relatable_id'   => null,
+            'layout_id'      => null,
+            'collection'     => $this->faker->optional(0.5)->randomElement([
+                'default',
+                'category',
+            ]),
         ];
     }
 
@@ -37,7 +44,7 @@ class LayoutRelationFactory extends Factory
      */
     public function setApplication(string $application): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'application' => $application,
         ]);
     }
@@ -52,9 +59,9 @@ class LayoutRelationFactory extends Factory
      */
     public function setRelatable(string $relatable_type, int $relatable_id): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'relatable_type' => $relatable_type,
-            'relatable_id' => $relatable_id,
+            'relatable_id'   => $relatable_id,
         ]);
     }
 
@@ -67,7 +74,7 @@ class LayoutRelationFactory extends Factory
      */
     public function setLayoutId(int $layout_id): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'layout_id' => $layout_id,
         ]);
     }
@@ -81,7 +88,7 @@ class LayoutRelationFactory extends Factory
      */
     public function setCollection(?string $collection): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'collection' => $collection,
         ]);
     }

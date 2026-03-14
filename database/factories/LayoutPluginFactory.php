@@ -22,8 +22,13 @@ class LayoutPluginFactory extends Factory
         return [
             'layout_id' => null,
             'plugin_id' => null,
-            'position' => $this->faker->shuffleArray(['header', 'content', 'aside', 'footer']),
-            'page' => $this->faker->randomNumber()
+            'position'  => $this->faker->randomElement([
+                'header',
+                'content',
+                'aside',
+                'footer',
+            ]),
+            'ordering'  => $this->faker->numberBetween(0, 100),
         ];
     }
 
@@ -36,8 +41,8 @@ class LayoutPluginFactory extends Factory
      */
     public function setLayoutId(int $layout_id): static
     {
-        return $this->state(fn(array $attributes) => [
-            'layout_id' => $layout_id
+        return $this->state(fn (array $attributes) => [
+            'layout_id' => $layout_id,
         ]);
     }
 
@@ -50,8 +55,8 @@ class LayoutPluginFactory extends Factory
      */
     public function setPluginId(int $plugin_id): static
     {
-        return $this->state(fn(array $attributes) => [
-            'plugin_id' => $plugin_id
+        return $this->state(fn (array $attributes) => [
+            'plugin_id' => $plugin_id,
         ]);
     }
 
@@ -64,22 +69,22 @@ class LayoutPluginFactory extends Factory
      */
     public function setPosition(string $position): static
     {
-        return $this->state(fn(array $attributes) => [
-            'position' => $position
+        return $this->state(fn (array $attributes) => [
+            'position' => $position,
         ]);
     }
 
     /**
      * set ordering
      *
-     * @param string $ordering
+     * @param int $ordering
      *
      * @return static
      */
-    public function setOrdering(string $ordering): static
+    public function setOrdering(int $ordering): static
     {
-        return $this->state(fn(array $attributes) => [
-            'ordering' => $ordering
+        return $this->state(fn (array $attributes) => [
+            'ordering' => $ordering,
         ]);
     }
 }

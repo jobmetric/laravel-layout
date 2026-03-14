@@ -20,9 +20,19 @@ class LayoutPageFactory extends Factory
     public function definition(): array
     {
         return [
-            'layout_id' => null,
-            'application' => $this->faker->shuffleArray(['admin', 'web', 'api']),
-            'page' => $this->faker->shuffleArray(['home', 'about', 'contact', 'login', 'register'])
+            'layout_id'   => null,
+            'application' => $this->faker->randomElement([
+                'admin',
+                'web',
+                'api',
+            ]),
+            'page'        => $this->faker->randomElement([
+                'home',
+                'about',
+                'contact',
+                'login',
+                'register',
+            ]),
         ];
     }
 
@@ -35,8 +45,8 @@ class LayoutPageFactory extends Factory
      */
     public function setLayoutId(int $layout_id): static
     {
-        return $this->state(fn(array $attributes) => [
-            'layout_id' => $layout_id
+        return $this->state(fn (array $attributes) => [
+            'layout_id' => $layout_id,
         ]);
     }
 
@@ -49,8 +59,8 @@ class LayoutPageFactory extends Factory
      */
     public function setApplication(string $application): static
     {
-        return $this->state(fn(array $attributes) => [
-            'application' => $application
+        return $this->state(fn (array $attributes) => [
+            'application' => $application,
         ]);
     }
 
@@ -63,8 +73,8 @@ class LayoutPageFactory extends Factory
      */
     public function setPage(string $page): static
     {
-        return $this->state(fn(array $attributes) => [
-            'page' => $page
+        return $this->state(fn (array $attributes) => [
+            'page' => $page,
         ]);
     }
 }
