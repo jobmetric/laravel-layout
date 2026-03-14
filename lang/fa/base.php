@@ -34,6 +34,7 @@ return [
 
     "exceptions" => [
         "collection_property_not_exist" => "ویژگی ':field' در مدل ':model' وجود ندارد.",
+        "application_not_registered" => "اپلیکیشن ':application' ثبت نشده است.",
     ],
 
     "events" => [
@@ -65,6 +66,14 @@ return [
         "layout_plugins_synced" => [
             "title" => "پلاگین‌های لایه همگام شد",
             "description" => "این رویداد هنگام همگام‌سازی پلاگین‌های لایه اجرا می‌شود.",
+        ],
+        "layout_relation_stored" => [
+            "title" => "لایه متصل شد",
+            "description" => "این رویداد هنگام اتصال یک لایه به مدل اجرا می‌شود.",
+        ],
+        "layout_relation_deleted" => [
+            "title" => "لایه جدا شد",
+            "description" => "این رویداد هنگام حذف اتصال لایه از مدل اجرا می‌شود.",
         ],
     ],
 

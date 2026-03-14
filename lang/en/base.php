@@ -34,6 +34,7 @@ return [
 
     "exceptions" => [
         "collection_property_not_exist" => "The ':field' property does not exist on model ':model'.",
+        "application_not_registered" => "The application ':application' is not registered.",
     ],
 
     "events" => [
@@ -65,6 +66,14 @@ return [
         "layout_plugins_synced" => [
             "title" => "Layout Plugins Synced",
             "description" => "This event is triggered when layout plugins are synced.",
+        ],
+        "layout_relation_stored" => [
+            "title" => "Layout Attached",
+            "description" => "This event is triggered when a layout is attached to a model.",
+        ],
+        "layout_relation_deleted" => [
+            "title" => "Layout Detached",
+            "description" => "This event is triggered when layout bindings are removed from a model.",
         ],
     ],
 

@@ -2,10 +2,16 @@
 
 namespace JobMetric\Layout;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use JobMetric\Layout\Events\HasLayout\LayoutRelationDeletedEvent;
+use JobMetric\Layout\Events\HasLayout\LayoutRelationStoredEvent;
+use JobMetric\Layout\Exceptions\ApplicationNotRegisteredException;
 use JobMetric\Layout\Exceptions\CollectionPropertyNotExistException;
+use JobMetric\Layout\Facades\ApplicationRegistry;
 use JobMetric\Layout\Models\Layout;
 use JobMetric\Layout\Models\LayoutPage;
 use JobMetric\Layout\Models\LayoutRelation;
@@ -21,11 +27,15 @@ use Throwable;
  *   protected string $layoutPageType = 'product';      // page type for layout_pages fallback
  *   protected ?string $layoutCollectionField = null;   // attribute name for collection value
  *
- * Resolves layout from layout_relations first; falls back to layout_pages by application + page type.
+ * Resolves layout from layout_relations first; falls back to layout_pages by application + page type;
+ * then to config default_layouts per application.
  *
  * @package JobMetric\Layout
  *
  * @property-read Collection<int, LayoutRelation> $layoutRelatable
+ *
+ * @method static Builder|static hasLayout(string $application, ?string $collection = null)
+ * @method static Builder|static hasLayoutForApplication(string $application)
  */
 trait HasLayout
 {
@@ -107,6 +117,34 @@ trait HasLayout
     }
 
     /**
+     * Cache key for getLayout() result. Null application/collection normalized to empty string.
+     *
+     * @param string|null $application
+     * @param string|null $collection
+     *
+     * @return string
+     */
+    protected function layoutCacheKey(?string $application, ?string $collection): string
+    {
+        $id = $this->getKey();
+
+        return 'layout:relatable:' . get_class($this) . ':' . ($id !== null ? (string) $id : '') . ':' . ($application ?? '') . ':' . ($collection ?? '');
+    }
+
+    /**
+     * Forget cached layout for this model and given application/collection.
+     *
+     * @param string|null $application
+     * @param string|null $collection
+     *
+     * @return void
+     */
+    protected function layoutForgetCache(?string $application, ?string $collection): void
+    {
+        Cache::forget($this->layoutCacheKey($application, $collection));
+    }
+
+    /**
      * Polymorphic relation: layout_relations for this model (application + collection scoped).
      *
      * @return MorphMany<LayoutRelation>
@@ -114,6 +152,38 @@ trait HasLayout
     public function layoutRelatable(): MorphMany
     {
         return $this->morphMany(LayoutRelation::class, 'relatable');
+    }
+
+    /**
+     * Scope: models that have a layout relation for the given application and optional collection.
+     *
+     * @param Builder $query
+     * @param string $application
+     * @param string|null $collection
+     *
+     * @return Builder
+     */
+    public function scopeHasLayout(Builder $query, string $application, ?string $collection = null): Builder
+    {
+        return $query->whereHas('layoutRelatable', function (Builder $q) use ($application, $collection) {
+            $q->where('application', $application);
+            if ($collection !== null) {
+                $q->where('collection', $collection);
+            }
+        });
+    }
+
+    /**
+     * Scope: models that have at least one layout relation for the given application.
+     *
+     * @param Builder $query
+     * @param string $application
+     *
+     * @return Builder
+     */
+    public function scopeHasLayoutForApplication(Builder $query, string $application): Builder
+    {
+        return $query->whereHas('layoutRelatable', fn (Builder $q) => $q->where('application', $application));
     }
 
     /**
@@ -184,22 +254,33 @@ trait HasLayout
 
     /**
      * Store a layout binding for this model for the given application and optional collection.
+     * Validates application via ApplicationRegistry. Fires LayoutRelationStoredEvent and clears cache.
      *
      * @param Layout|int $layout
      * @param string $application
      * @param string|null $collection
      *
      * @return LayoutRelation
+     * @throws ApplicationNotRegisteredException
      */
     public function storeLayout(Layout|int $layout, string $application, ?string $collection = null): LayoutRelation
     {
+        if (! ApplicationRegistry::has($application)) {
+            throw new ApplicationNotRegisteredException($application);
+        }
+
         $layoutId = $layout instanceof Layout ? $layout->id : $layout;
 
-        return $this->layoutRelatable()->create([
+        $relation = $this->layoutRelatable()->create([
             'application' => $application,
             'layout_id'   => $layoutId,
             'collection'  => $collection,
         ]);
+
+        $this->layoutForgetCache($application, $collection);
+        event(new LayoutRelationStoredEvent($relation, $this));
+
+        return $relation;
     }
 
     /**
@@ -232,8 +313,30 @@ trait HasLayout
     }
 
     /**
+     * Get the layout relation record for the given application and optional collection (no fallback).
+     *
+     * @param string|null $application
+     * @param string|null $collection
+     *
+     * @return LayoutRelation|null
+     * @throws CollectionPropertyNotExistException
+     */
+    public function getLayoutRelation(?string $application = null, ?string $collection = null): ?LayoutRelation
+    {
+        $collection = $collection ?? $this->layoutGetCollectionValue();
+
+        return $this->layoutRelatable()
+            ->when($application !== null, fn ($q) => $q->where('application', $application))
+            ->when($collection !== null, fn ($q) => $q->where('collection', $collection))
+            ->with('layout')
+            ->first();
+    }
+
+    /**
      * Resolve the effective Layout for this model for the given application and optional collection.
-     * Uses layout_relations first; falls back to layout_pages (application + layoutPageType()) when no relation exists.
+     * Uses layout_relations first; falls back to layout_pages (application + layoutPageType());
+     * then to ApplicationRegistry default_layout for that application. Result can be cached when config
+     * layout.cache_time > 0 or null (forever).
      *
      * @param string|null $application
      * @param string|null $collection
@@ -245,16 +348,88 @@ trait HasLayout
     {
         $collection = $collection ?? $this->layoutGetCollectionValue();
 
-        $relation = $this->layoutRelatable()->when($application !== null, fn ($q
+        $cacheTime = config('layout.cache_time', 0);
+
+        $resolver = function () use ($application, $collection): ?Layout {
+            $relation = $this->layoutRelatable()->when($application !== null, fn ($q
             ) => $q->where('application', $application))->when($collection !== null, fn ($q
             ) => $q->where('collection', $collection))->with('layout')->first();
 
-        if ($relation !== null) {
-            return $relation->layout;
+            if ($relation !== null) {
+                return $relation->layout;
+            }
+
+            if ($application === null) {
+                return null;
+            }
+
+            $layoutPage = LayoutPage::query()
+                ->applicationPage($application, $this->layoutPageType())
+                ->with('layout')
+                ->first();
+
+            if ($layoutPage?->layout !== null) {
+                return $layoutPage->layout;
+            }
+
+            $defaultId = ApplicationRegistry::getDefaultLayout($application);
+            if ($defaultId !== null) {
+                $layout = Layout::query()->find($defaultId);
+
+                return $layout instanceof Layout ? $layout : null;
+            }
+
+            return null;
+        };
+
+        $key = $this->layoutCacheKey($application, $collection);
+
+        if ($cacheTime === null) {
+            return Cache::rememberForever($key, $resolver);
         }
 
-        if ($application === null) {
-            return null;
+        $ttlMinutes = (int) $cacheTime;
+        if ($ttlMinutes > 0) {
+            return Cache::remember($key, $ttlMinutes * 60, $resolver);
+        }
+
+        return $resolver();
+    }
+
+    /**
+     * Whether this model has a layout (relation or effective) for the given application and optional collection.
+     *
+     * @param string|null $application
+     * @param string|null $collection
+     *
+     * @return bool
+     * @throws CollectionPropertyNotExistException
+     */
+    public function hasLayout(?string $application = null, ?string $collection = null): bool
+    {
+        return $this->getLayout($application, $collection) !== null;
+    }
+
+    /**
+     * Get all effective layouts for the given application: from relations, then layout_pages fallback, then default.
+     *
+     * @param string $application
+     *
+     * @return Collection<int, Layout>
+     * @throws CollectionPropertyNotExistException
+     */
+    public function getLayoutsForApplication(string $application): Collection
+    {
+        $collection = $this->layoutGetCollectionValue();
+        $layouts = new Collection();
+
+        $relations = $this->layoutRelatable()->where('application', $application)->when($collection !== null, fn ($q
+        ) => $q->where('collection', $collection))->with('layout')->get();
+
+        foreach ($relations as $rel) {
+            if ($rel->layout !== null && ! $layouts->contains('id', $rel->layout->id)) {
+                $layouts->push($rel->layout);
+            }
         }
 
         $layoutPage = LayoutPage::query()
@@ -262,11 +437,55 @@ trait HasLayout
             ->with('layout')
             ->first();
 
-        return $layoutPage?->layout;
+        if ($layoutPage?->layout !== null && ! $layouts->contains('id', $layoutPage->layout->id)) {
+            $layouts->push($layoutPage->layout);
+        }
+
+        $defaultId = ApplicationRegistry::getDefaultLayout($application);
+        if ($defaultId !== null) {
+            $layout = Layout::query()->find($defaultId);
+            if ($layout instanceof Layout && ! $layouts->contains('id', $layout->id)) {
+                $layouts->push($layout);
+            }
+        }
+
+        return $layouts;
+    }
+
+    /**
+     * Replace layout bindings for the given application (and optional collection) with the first layout from the list.
+     * Validates application. Fires events and clears cache.
+     *
+     * @param string $application
+     * @param array<int, Layout|int> $layoutIdsOrLayouts
+     * @param string|null $collection
+     *
+     * @return static
+     * @throws ApplicationNotRegisteredException
+     */
+    public function syncLayoutsForApplication(
+        string $application,
+        array $layoutIdsOrLayouts,
+        ?string $collection = null
+    ): static {
+        $this->forgetLayout($application, $collection);
+
+        $first = null;
+        foreach ($layoutIdsOrLayouts as $item) {
+            $first = $item;
+            break;
+        }
+
+        if ($first !== null) {
+            $this->storeLayout($first, $application, $collection);
+        }
+
+        return $this;
     }
 
     /**
      * Remove layout bindings for the given application and/or collection (null = all).
+     * Fires LayoutRelationDeletedEvent and clears cache when scope is specific.
      *
      * @param string|null $application
      * @param string|null $collection
@@ -275,10 +494,17 @@ trait HasLayout
      */
     public function forgetLayout(?string $application = null, ?string $collection = null): static
     {
-        $this->layoutRelatable()
-            ->when($application !== null, fn ($q) => $q->where('application', $application))
-            ->when($collection !== null, fn ($q) => $q->where('collection', $collection))
-            ->delete();
+        $query = $this->layoutRelatable()->when($application !== null, fn ($q
+        ) => $q->where('application', $application))->when($collection !== null, fn ($q
+        ) => $q->where('collection', $collection));
+
+        $deletedCount = $query->count();
+        $query->delete();
+
+        if ($deletedCount > 0) {
+            $this->layoutForgetCache($application, $collection);
+            event(new LayoutRelationDeletedEvent($this, $application ?? '', $collection, $deletedCount));
+        }
 
         return $this;
     }

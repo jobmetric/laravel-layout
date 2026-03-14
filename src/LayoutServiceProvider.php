@@ -50,6 +50,8 @@ class LayoutServiceProvider extends PackageCoreServiceProvider
             $registry->register(\JobMetric\Layout\Events\Layout\LayoutForceDeleteEvent::class);
             $registry->register(\JobMetric\Layout\Events\Layout\LayoutPagesSyncedEvent::class);
             $registry->register(\JobMetric\Layout\Events\Layout\LayoutPluginsSyncedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\HasLayout\LayoutRelationStoredEvent::class);
+            $registry->register(\JobMetric\Layout\Events\HasLayout\LayoutRelationDeletedEvent::class);
         }
     }
 }

@@ -6,7 +6,9 @@ use Exception;
 use Throwable;
 
 /**
- * Thrown when the model's layout collection field (from LayoutContract) does not exist on the model.
+ * Thrown when the model's layout collection field does not exist on the model.
+ *
+ * @package JobMetric\Layout
  */
 class CollectionPropertyNotExistException extends Exception
 {
