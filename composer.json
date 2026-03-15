@@ -29,6 +29,10 @@
         "jobmetric/laravel-event-system": "^2.8",
         "spatie/laravel-query-builder": "^6.3"
     },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^9.5|^10.0"
+    },
     "autoload": {
         "files": [
             "src/helpers.php"
@@ -36,6 +40,11 @@
         "psr-4": {
             "JobMetric\\Layout\\": "src/",
             "JobMetric\\Layout\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "JobMetric\\Layout\\Tests\\": "tests/"
         }
     },
     "extra": {
