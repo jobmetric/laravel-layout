@@ -277,6 +277,9 @@ trait HasLayout
 
         $this->layoutForgetCache($application, $collection);
         event(new LayoutRelationStoredEvent($relation, $this));
+        if ($relation->exists) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutRelation\LayoutRelationStoreCommittedEvent($relation->getKey()), $relation->getConnectionName());
+        }
 
         return $relation;
     }
@@ -496,12 +499,18 @@ trait HasLayout
         ) => $q->where('application', $application))->when($collection !== null, fn ($q
         ) => $q->where('collection', $collection));
 
+        $outcomeRelations = (clone $query)->get();
         $deletedCount = $query->count();
         $query->delete();
 
         if ($deletedCount > 0) {
             $this->layoutForgetCache($application, $collection);
             event(new LayoutRelationDeletedEvent($this, $application ?? '', $collection, $deletedCount));
+            foreach ($outcomeRelations as $outcomeRelation) {
+                if (! $outcomeRelation->newQuery()->whereKey($outcomeRelation->getKey())->exists()) {
+                    app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutRelation\LayoutRelationDeleteCommittedEvent($outcomeRelation->getKey()), $outcomeRelation->getConnectionName());
+                }
+            }
         }
 
         return $this;

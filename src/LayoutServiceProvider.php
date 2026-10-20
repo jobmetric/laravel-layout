@@ -40,6 +40,19 @@ class LayoutServiceProvider extends PackageCoreServiceProvider
     public function afterBootPackage(): void
     {
         if ($this->app->bound('EventRegistry')) {
+            $registry = $this->app->make('EventRegistry');
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutStoreCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutUpdateCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutDeleteCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutRestoreCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\Layout\LayoutForceDeleteCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\LayoutRelation\LayoutRelationStoreCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\LayoutRelation\LayoutRelationDeleteCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\LayoutPages\LayoutPagesSyncCommittedEvent::class);
+            $registry->register(\JobMetric\Layout\Events\LayoutPlugins\LayoutPluginsSyncCommittedEvent::class);
+        }
+
+        if ($this->app->bound('EventRegistry')) {
             /** @var EventRegistry $registry */
             $registry = $this->app->make('EventRegistry');
 

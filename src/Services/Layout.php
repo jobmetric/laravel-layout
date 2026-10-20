@@ -36,6 +36,18 @@ use Throwable;
  */
 class Layout extends AbstractCrudService
 {
+    /** @var array<string, class-string<\JobMetric\EventSystem\Contracts\DomainEvent>> */
+    protected static array $committedEventClasses = [
+        'store' => \JobMetric\Layout\Events\Layout\LayoutStoreCommittedEvent::class,
+        'update' => \JobMetric\Layout\Events\Layout\LayoutUpdateCommittedEvent::class,
+        'destroy' => \JobMetric\Layout\Events\Layout\LayoutDeleteCommittedEvent::class,
+        'restore' => \JobMetric\Layout\Events\Layout\LayoutRestoreCommittedEvent::class,
+        'forceDelete' => \JobMetric\Layout\Events\Layout\LayoutForceDeleteCommittedEvent::class,
+    ];
+
+    /** @var list<string> */
+    protected array $committedEventRelations = ['layoutPages', 'layoutPlugins'];
+
     /**
      * Enable soft-deletes + restore/forceDelete APIs.
      *
@@ -150,12 +162,18 @@ class Layout extends AbstractCrudService
             $layout->layoutPages()->createMany($data['pages']);
 
             event(new LayoutPagesSyncedEvent($layout, $data['pages']));
+            if (true) {
+                app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutPages\LayoutPagesSyncCommittedEvent($layout->getKey()), $layout->getConnectionName());
+            }
         }
 
         if (! empty($data['plugins'])) {
             $layout->layoutPlugins()->createMany($data['plugins']);
 
             event(new LayoutPluginsSyncedEvent($layout, $data['plugins']));
+            if (true) {
+                app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutPlugins\LayoutPluginsSyncCommittedEvent($layout->getKey()), $layout->getConnectionName());
+            }
         }
     }
 
@@ -173,6 +191,7 @@ class Layout extends AbstractCrudService
         $layout = $model;
 
         if (array_key_exists('pages', $data)) {
+            $outcomepagesBefore = \JobMetric\EventSystem\Support\OutcomeState::capture($layout, ['layoutPages']);
             $layout->layoutPages()->delete();
             if (! empty($data['pages'])) {
                 $layout->layoutPages()->createMany($data['pages']);
@@ -182,12 +201,19 @@ class Layout extends AbstractCrudService
         }
 
         if (array_key_exists('plugins', $data)) {
+            $outcomepluginsBefore = \JobMetric\EventSystem\Support\OutcomeState::capture($layout, ['layoutPlugins']);
             $layout->layoutPlugins()->delete();
             if (! empty($data['plugins'])) {
                 $layout->layoutPlugins()->createMany($data['plugins']);
 
                 event(new LayoutPluginsSyncedEvent($layout, $data['plugins']));
             }
+        }
+        if (array_key_exists('pages', $data) && $outcomepagesBefore !== \JobMetric\EventSystem\Support\OutcomeState::capture($layout, ['layoutPages'])) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutPages\LayoutPagesSyncCommittedEvent($layout->getKey()), $layout->getConnectionName());
+        }
+        if (array_key_exists('plugins', $data) && $outcomepluginsBefore !== \JobMetric\EventSystem\Support\OutcomeState::capture($layout, ['layoutPlugins'])) {
+            app(\JobMetric\EventSystem\Support\CommittedEventDispatcher::class)->dispatch(new \JobMetric\Layout\Events\LayoutPlugins\LayoutPluginsSyncCommittedEvent($layout->getKey()), $layout->getConnectionName());
         }
     }
 
