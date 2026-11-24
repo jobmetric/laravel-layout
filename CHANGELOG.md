@@ -1,7 +1,10 @@
 # Changelog
 
-## 2.1.0
+## 2.1.1
 
-- Add registered immutable business outcome events with English and Persian discovery metadata.
-- Publish minimal allowlisted identifiers after the owning transaction commits; preserve all legacy event signatures and behavior.
-- Suppress outcomes for validation failures, rollback and unchanged business state. Listener failures cannot invalidate committed writes. Delivery is synchronous without an outbox.
+- Allow multiple placements of the same plugin in one layout position.
+- For an existing installation, drop the legacy unique index
+  `LAYOUT_PLUGIN_UNIQUE_KEY` from the configured layout plugins table.
+  The owning migration now creates fresh tables without this index.
+  On MySQL with the default table name, use
+  `ALTER TABLE layout_plugins DROP INDEX LAYOUT_PLUGIN_UNIQUE_KEY;`.
