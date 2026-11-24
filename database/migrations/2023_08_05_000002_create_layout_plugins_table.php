@@ -37,11 +37,6 @@ return new class extends Migration
              * Display/execution order of the plugin at this position; lower runs first.
              */
 
-            $table->unique([
-                'layout_id',
-                'plugin_id',
-                'position',
-            ], 'LAYOUT_PLUGIN_UNIQUE_KEY');
         });
     }
 
